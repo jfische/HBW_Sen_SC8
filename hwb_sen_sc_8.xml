@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<device version="12" eep_size="1024">
+	<supported_types>
+		<type name="RS485 Homebrew Tastermodul (8fach)" id="HBW_sen_Sc8" priority="2">
+			<parameter index="0" size="1" const_value="134"/>
+			<parameter index="1" size="1" const_value="0"/>
+			<parameter index="2" size="2" cond_op="GE" const_value="0x0100"/>
+		</type>
+	</supported_types>
+
+	<paramset type="MASTER" id="HBW_Sen_SC8_dev_master">
+
+		<parameter id="Identify_LED">
+			<logical type="boolean" default="true"/>
+			<physical type="integer" size="1.0" interface="eeprom">
+				<address index="0x00FF"/>
+			</physical>
+			<conversion type="boolean_integer" invert="false"/>
+		</parameter>
+
+	<parameter id="LOGGING_TIME">
+			<logical type="float" min="0.1" max="25.5" default="2.0" unit="s"/>
+			<physical type="integer" size="1.0" interface="eeprom">
+				<address index="0x0001"/>
+			</physical>
+			<conversion type="float_integer_scale" factor="10" offset="0.0"/>
+		</parameter>
+		
+		<parameter id="CENTRAL_ADDRESS" hidden="true">
+			<logical type="integer"/>
+			<physical type="integer" size="4" interface="eeprom">
+				<address index="0x0002"/>
+			</physical>
+		</parameter>
+			<enforce id="CENTRAL_ADDRESS" value="1"/>
+
+		<parameter id="DIRECT_LINK_DEACTIVATE" hidden="true">
+			<logical type="boolean" default="false"/>
+			<physical type="integer" size="0.1" interface="eeprom">
+				<address index="0x0006"/>
+			</physical>
+		</parameter>
+		<enforce id="DIRECT_LINK_DEACTIVATE" value="true"/>
+	</paramset>
+	
+
+	<frames>
+		<frame id="LEVEL_SET" direction="to_device" type="#x" channel_field="10">
+			<parameter type="integer" index="11.0" size="1.0" param="STATE"/>
+		</frame>
+		
+		<frame id="LEVEL_GET" direction="to_device" type="#S" channel_field="10"/>
+		
+		<frame id="INFO_LEVEL" direction="from_device" event="true" type="#i" channel_field="10">
+			<parameter type="integer" index="11.0" size="4.0" param="STATE"/>
+			<parameter type="integer" index="15.4" size="0.3" param="STATE_FLAGS"/>
+		</frame>
+		
+		<frame id="KEY_EVENT_SHORT" direction="from_device" event="true" type="#K" channel_field="10">
+			<parameter type="integer" index="12.0" size="0.2" const_value="2"/>
+			<parameter type="integer" index="12.2" size="0.6" param="COUNTER"/>
+		</frame>
+		
+		<frame id="KEY_EVENT_LONG" direction="from_device" event="true" type="#K" channel_field="10">
+			<parameter type="integer" index="12.0" size="0.2" const_value="3"/>
+			<parameter type="integer" index="12.2" size="0.6" param="COUNTER"/>
+		</frame>
+		
+		<frame id="KEY_EVENT_LONGRELEASE" direction="from_device" event="true" type="#K" channel_field="10">
+			<parameter type="integer" index="12.0" size="0.2" CONST_VALUE="1"/>
+			<parameter type="integer" index="12.2" size="0.6" param="COUNTER"/>
+		</frame>
+	  
+		<frame id="KEY_SIM_SHORT" direction="from_device" type="#K" channel_field="10" receiver_channel_field="11">
+			<parameter type="integer" index="12.0" size="0.1" const_value="0"/>
+			<parameter type="integer" index="12.2" size="0.6" param="SIM_COUNTER"/>
+		</frame>
+		
+		<frame id="KEY_SIM_LONG" direction="from_device" type="#K" channel_field="10" receiver_channel_field="11">
+			<parameter type="integer" index="12.0" size="0.1" const_value="1"/>
+			<parameter type="integer" index="12.2" size="0.6" param="SIM_COUNTER"/>
+		</frame>
+		
+		<frame id="SET_LOCK" direction="to_device" type="#l" channel_field="11">
+			<parameter type="integer" index="12.0" size="1.0" param="INHIBIT"/>
+		</frame>
+		
+		<frame id="TOGGLE_INSTALL_TEST" direction="to_device" type="#x" channel_field="10">
+			<parameter type="integer" index="11.0" size="1.0" param="TOGGLE_FLAG"/>
+		</frame>
+	</frames>
+	
+	<channels>
+		<channel index="0" type="MAINTENANCE" ui_flags="internal" class="maintenance" count="1">
+			<paramset type="MASTER" id="maint_ch_master"/>
+			<paramset type="VALUES" id="maint_ch_values">
+			<parameter id="UNREACH" operations="read,event" ui_flags="service">
+				<logical type="boolean"/>
+				<physical type="integer" interface="internal" value_id="UNREACH"/>
+			</parameter>
+			<parameter id="STICKY_UNREACH" operations="read,write,event" ui_flags="service">
+				<logical type="boolean"/>
+				<physical type="integer" interface="internal" value_id="STICKY_UNREACH"/>
+			</parameter>
+			<parameter id="CONFIG_PENDING" operations="read,event" ui_flags="service">
+				<logical type="boolean"/>
+				<physical type="integer" interface="internal" value_id="CONFIG_PENDING"/>
+			</parameter>
+		</paramset>
+	</channel>
+
+	<channel index="1" physical_index_offset="-1" count="8" type="KEY">
+		<link_roles>
+			<source name="SWITCH"/>
+		</link_roles>
+		<paramset type="MASTER" id="hmw_input_ch_master" address_start="0x07" address_step="4">
+
+			<parameter id="INPUT_LOCKED">
+				<logical type="boolean" default="true"/>
+				<physical type="integer" size="1.0" interface="eeprom">
+					<address index="+0.0"/>
+				</physical>
+				<conversion type="boolean_integer" invert="false"/>
+			</parameter>
+		
+			<parameter id="INVERTED">
+				<logical type="boolean" default="true"/>
+				<physical type="integer" size="1.0" interface="eeprom">
+					<address index="+1.0"/>
+				</physical>
+				<conversion type="boolean_integer" invert="false"/>
+			</parameter>
+
+			<parameter id="PULLUP">
+				<logical type="boolean" default="true"/>
+				<physical type="integer" size="1.0" interface="eeprom">
+					<address index="+2.0"/>
+				</physical>
+				<conversion type="boolean_integer" invert="false"/>
+			</parameter>
+			
+			<parameter id="LONG_PRESS_TIME">
+				<logical type="float" min="0.4" max="3.9" default="1.0" unit="s"/>
+				<physical type="integer" size="1.0" interface="eeprom">
+					<address index="+3.0"/>
+				</physical>
+					<conversion type="float_integer_scale" factor="64"/>
+					<conversion type="integer_integer_map">
+					<value_map device_value="0xff" parameter_value="10" from_device="true" to_device="false"/>
+					</conversion>
+			</parameter>
+			</paramset>
+
+
+			<paramset type="LINK" id="hmw_input_ch_link" peer_param="ACTUATOR" channel_param="CHANNEL" count="28" address_start="0x357" address_step="6">
+				<parameter id="CHANNEL" operations="none" hidden="true">
+					<logical type="integer" min="0" max="255" default="255"/>
+					<physical type="integer" size="1.0" interface="eeprom">
+						<address index="+0"/>
+					</physical>
+				</parameter>
+
+
+				<parameter id="ACTUATOR" operations="none" hidden="true">
+					<logical type="address"/>
+					<physical type="array">
+					<physical type="integer" size="4.0" interface="eeprom">
+						<address index="+1"/>
+					</physical>
+					<physical type="integer" size="1.0" interface="eeprom">
+						<address index="+5"/>
+					</physical>
+					</physical>
+				</parameter>
+			</paramset>
+			<paramset type="VALUES" id="hmw_input_ch_values">
+
+
+			<parameter id="PRESS_SHORT" operations="event,write" control="BUTTON.SHORT" loopback="true">
+				<logical type="action"/>
+				<physical type="integer" interface="command" value_id="COUNTER">
+					<event frame="KEY_EVENT_SHORT"/>
+					<set request="KEY_SIM_SHORT"/>
+				</physical>
+				<conversion type="action_key_counter" sim_counter="SIM_COUNTER" counter_size="6"/>
+			</parameter>
+
+
+			<parameter id="PRESS_LONG" operations="event,write" control="BUTTON.LONG" loopback="true">
+				<logical type="action"/>
+				<physical type="integer" interface="command" value_id="COUNTER">
+					<event frame="KEY_EVENT_LONG"/>
+					<set request="KEY_SIM_LONG"/>
+				</physical>
+				<conversion type="action_key_counter" sim_counter="SIM_COUNTER" counter_size="6"/>
+			</parameter>
+
+
+			<parameter id="RELEASE_LONG" operations="event,write" control="BUTTON.RELEASE" loopback="true">
+				<logical type="action"/>
+				<physical type="integer" interface="command" value_id="COUNTER">
+					<event frame="KEY_EVENT_LONGRELEASE"/>
+					<set request="KEY_SIM_LONG"/>
+				</physical>
+				<conversion type="action_key_counter" sim_counter="SIM_COUNTER" counter_size="6"/>
+			</parameter>
+		
+
+			<parameter id="INSTALL_TEST" operations="event" ui_flags="internal">
+				<logical type="action"/>
+				<physical type="integer" interface="command" value_id="TEST_COUNTER">
+					<event frame="KEY_EVENT_SHORT"/>
+					<event frame="KEY_EVENT_LONG"/>
+				</physical>
+			</parameter>
+		</paramset>
+	</channel>
+</channels>
+</device>
